@@ -65,11 +65,10 @@
                             <span class="text-muted">Progress</span>
                             <span class="fw-bold">{{ goal.progress_percentage|floatformat:1 }}%</span>
                         </div>
-                        <!-- eslint-disable-next-line css-propertyvalueexpected -->
                         <div class="progress" style="height: 10px;">
                             <div class="progress-bar bg-success" 
                                  role="progressbar" 
-                                 style="width: {{ goal.progress_percentage|floatformat:1 }}%"
+                                 style="--progress: {{ goal.progress_percentage }}%; width: var(--progress);"
                                  aria-valuenow="{{ goal.progress_percentage }}" 
                                  aria-valuemin="0" 
                                  aria-valuemax="100">
@@ -224,12 +223,6 @@ function addMoney(goalId) {
 function editGoal(goalId) {
     goalId = parseInt(goalId); // Convert string to number if needed
     alert('Edit functionality coming soon!');
-}
-
-function addMoney(goalId) {
-    document.getElementById('goalId').value = goalId;
-    const modal = new bootstrap.Modal(document.getElementById('addMoneyModal'));
-    modal.show();
 }
 
 function deleteGoal(goalId) {
