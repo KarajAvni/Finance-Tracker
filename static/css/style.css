@@ -1,0 +1,36 @@
+/* Custom styles for Finance Tracker */
+.dashboard-card {
+    transition: transform 0.2s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.transaction-item {
+    border-left: 4px solid #007bff;
+    padding-left: 15px;
+    margin-bottom: 10px;
+}
+
+.transaction-income {
+    border-left-color: #28a745;
+}
+
+.transaction-expense {
+    border-left-color: #dc3545;
+}
+
+/* Chart containers */
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 250px;
+    }
+}

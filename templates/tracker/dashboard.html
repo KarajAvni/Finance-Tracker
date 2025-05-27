@@ -1,0 +1,155 @@
+<!-- templates/tracker/dashboard.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card bg-success text-white dashboard-card">
+            <div class="card-body">
+                <h5>Total Income</h5>
+                <h3>${{ total_income|floatformat:2 }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5>Total Expenses</h5>
+                <h3>${{ total_expenses|floatformat:2 }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card {% if balance >= 0 %}bg-info{% else %}bg-warning{% endif %} text-white">
+            <div class="card-body">
+                <h5>Balance</h5>
+                <h3>${{ balance|floatformat:2 }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>Monthly Overview</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Expense Categories</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Transactions</h5>
+            </div>
+            <div class="card-body">
+                {% for transaction in recent_transactions %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <div>
+                            <strong>{{ transaction.description }}</strong><br>
+                            <small class="text-muted">{{ transaction.date }}</small>
+                        </div>
+                        <span class="badge {% if transaction.type == 'income' %}bg-success{% else %}bg-danger{% endif %}">
+                            {% if transaction.type == 'income' %}+{% else %}-{% endif %}${{ transaction.amount }}
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Savings Goals</h5>
+            </div>
+            <div class="card-body">
+                {% for goal in savings_goals %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ goal.name }}</strong>
+                            <span>${{ goal.current_amount|floatformat:2 }}/${{ goal.target_amount|floatformat:2 }}</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="--progress: {{ goal.progress_percentage|floatformat:1 }}%; width: var(--progress);" 
+                                 aria-valuenow="{{ goal.progress_percentage|floatformat:1 }}" 
+                                 aria-valuemin="0" aria-valuemax="100">
+                                {{ goal.progress_percentage|floatformat:1 }}%
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">No savings goals yet. <a href="#" class="btn btn-sm btn-primary">Add Goal</a></p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Monthly Chart
+const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+new Chart(monthlyCtx, {
+    type: 'line',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+            label: 'Income',
+            data: [1200, 1900, 800, 1500, 2000, 1800],
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        }, {
+            label: 'Expenses',
+            data: [800, 1400, 600, 1200, 1500, 1300],
+            borderColor: 'rgb(255, 99, 132)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Category Chart
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+new Chart(categoryCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Food', 'Transport', 'Entertainment', 'Bills'],
+        datasets: [{
+            data: [300, 150, 200, 400],
+            backgroundColor: [
+                'rgb(255, 99, 132)',
+                'rgb(54, 162, 235)',
+                'rgb(255, 205, 86)',
+                'rgb(75, 192, 192)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true
+    }
+});
+</script>
+{% endblock %}
