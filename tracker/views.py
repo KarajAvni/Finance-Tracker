@@ -2,10 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum, Q
+from django.http import JsonResponse
 from .models import Transaction, Category, SavingsGoal
 from .forms import TransactionForm, SavingsGoalForm
 from django.core.paginator import Paginator
 from django.utils import timezone
+import json
 
 
 # Create your views here.
@@ -135,18 +137,53 @@ def savings_goals(request):
 def add_goal(request):
     if request.method == 'POST':
         try:
+            # More robust validation
+            name = request.POST.get('name', '').strip()
+            target_amount = request.POST.get('target_amount')
+            current_amount = request.POST.get('current_amount', '0')
+            target_date = request.POST.get('target_date')
+            description = request.POST.get('description', '').strip()
+            
+            # Validate required fields
+            if not name:
+                messages.error(request, 'Goal name is required.')
+                return redirect('savings_goals')
+            
+            if not target_amount:
+                messages.error(request, 'Target amount is required.')
+                return redirect('savings_goals')
+                
+            if not target_date:
+                messages.error(request, 'Target date is required.')
+                return redirect('savings_goals')
+            
+            # Convert and validate amounts
+            target_amount = float(target_amount)
+            current_amount = float(current_amount) if current_amount else 0
+            
+            if target_amount <= 0:
+                messages.error(request, 'Target amount must be greater than 0.')
+                return redirect('savings_goals')
+                
+            if current_amount < 0:
+                messages.error(request, 'Current amount cannot be negative.')
+                return redirect('savings_goals')
+            
             goal = SavingsGoal(
                 user=request.user,
-                name=request.POST.get('name'),
-                target_amount=float(request.POST.get('target_amount')),
-                current_amount=float(request.POST.get('current_amount', 0)),
-                target_date=request.POST.get('target_date'),
-                description=request.POST.get('description', '')
+                name=name,
+                target_amount=target_amount,
+                current_amount=current_amount,
+                target_date=target_date,
+                description=description
             )
             goal.save()
             messages.success(request, f'Savings goal "{goal.name}" created successfully!')
-        except (ValueError, TypeError) as e:
-            messages.error(request, 'Please check your input and try again.')
+            
+        except ValueError:
+            messages.error(request, 'Please enter valid amounts.')
+        except Exception as e:
+            messages.error(request, 'An error occurred while creating the goal. Please try again.')
     
     return redirect('savings_goals')
 
@@ -155,17 +192,108 @@ def add_money_to_goal(request):
     if request.method == 'POST':
         try:
             goal_id = request.POST.get('goal_id')
-            amount = float(request.POST.get('amount'))
+            amount = request.POST.get('amount')
+            
+            # Validate inputs
+            if not goal_id:
+                messages.error(request, 'Goal ID is missing.')
+                return redirect('savings_goals')
+                
+            if not amount:
+                messages.error(request, 'Amount is required.')
+                return redirect('savings_goals')
+            
+            amount = float(amount)
+            
+            if amount <= 0:
+                messages.error(request, 'Amount must be greater than 0.')
+                return redirect('savings_goals')
             
             goal = get_object_or_404(SavingsGoal, id=goal_id, user=request.user)
             goal.current_amount += amount
             goal.save()
             
             messages.success(request, f'Added ${amount:.2f} to "{goal.name}"!')
-        except (ValueError, TypeError):
-            messages.error(request, 'Invalid amount entered.')
+            
+        except ValueError:
+            messages.error(request, 'Please enter a valid amount.')
+        except Exception as e:
+            messages.error(request, 'An error occurred while adding money to the goal.')
     
     return redirect('savings_goals')
+
+@login_required
+def edit_goal(request, goal_id):
+    """Edit an existing savings goal"""
+    goal = get_object_or_404(SavingsGoal, id=goal_id, user=request.user)
+    
+    if request.method == 'POST':
+        try:
+            # Get form data
+            name = request.POST.get('name', '').strip()
+            target_amount = request.POST.get('target_amount')
+            current_amount = request.POST.get('current_amount', '0')
+            target_date = request.POST.get('target_date')
+            description = request.POST.get('description', '').strip()
+            
+            # Validate required fields
+            if not name:
+                messages.error(request, 'Goal name is required.')
+                return redirect('savings_goals')
+            
+            if not target_amount:
+                messages.error(request, 'Target amount is required.')
+                return redirect('savings_goals')
+                
+            if not target_date:
+                messages.error(request, 'Target date is required.')
+                return redirect('savings_goals')
+            
+            # Convert and validate amounts
+            target_amount = float(target_amount)
+            current_amount = float(current_amount) if current_amount else 0
+            
+            if target_amount <= 0:
+                messages.error(request, 'Target amount must be greater than 0.')
+                return redirect('savings_goals')
+                
+            if current_amount < 0:
+                messages.error(request, 'Current amount cannot be negative.')
+                return redirect('savings_goals')
+            
+            # Update goal
+            goal.name = name
+            goal.target_amount = target_amount
+            goal.current_amount = current_amount
+            goal.target_date = target_date
+            goal.description = description
+            goal.save()
+            
+            messages.success(request, f'Goal "{goal.name}" updated successfully!')
+            
+        except ValueError:
+            messages.error(request, 'Please enter valid amounts.')
+        except Exception as e:
+            messages.error(request, 'An error occurred while updating the goal.')
+    
+    return redirect('savings_goals')
+
+@login_required
+def get_goal_data(request, goal_id):
+    """Get goal data for editing (AJAX endpoint)"""
+    try:
+        goal = get_object_or_404(SavingsGoal, id=goal_id, user=request.user)
+        data = {
+            'id': goal.id,
+            'name': goal.name,
+            'target_amount': str(goal.target_amount),
+            'current_amount': str(goal.current_amount),
+            'target_date': goal.target_date.strftime('%Y-%m-%d'),
+            'description': goal.description,
+        }
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': 'Goal not found'}, status=404)
 
 @login_required
 def delete_transaction(request, transaction_id):
