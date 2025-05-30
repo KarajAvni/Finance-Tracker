@@ -34,3 +34,61 @@
         height: 250px;
     }
 }
+
+/* ===== Registration Form Specific Styles ===== */
+/* Card Styles */
+.registration-card {
+    border-radius: 10px;
+    border: none;
+    overflow: hidden;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+.registration-card .card-header {
+    border-radius: 10px 10px 0 0;
+    padding: 1.5rem;
+    background-color: #0d6efd;
+}
+
+.registration-card .card-body {
+    padding: 2rem;
+}
+
+/* Form Styles */
+.registration-form .form-control {
+    padding: 0.75rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.registration-form .form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Validation Styles */
+.registration-form .invalid-feedback {
+    display: none;
+    margin-top: 0.25rem;
+    font-size: 0.875em;
+    color: #dc3545;
+}
+
+.registration-form .was-validated .form-control:invalid ~ .invalid-feedback {
+    display: block;
+}
+
+/* Button Styles */
+.registration-form .btn-primary {
+    padding: 0.75rem;
+    font-weight: 500;
+    margin-top: 1rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+    .registration-card .card-body {
+        padding: 1.5rem;
+    }
+}
+

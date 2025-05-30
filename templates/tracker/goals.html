@@ -52,10 +52,10 @@
                             Actions
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="editGoal('{{ goal.id }}', '{{ goal.name }}', '{{ goal.target_amount }}', '{{ goal.current_amount }}', '{{ goal.target_date|date:'Y-m-d' }}', '{{ goal.description }}')">Edit</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="addMoney('{{ goal.id }}', '{{ goal.name }}')">Add Money</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="editGoal('{{ goal.id }}', '{{ goal.name|escapejs }}', '{{ goal.target_amount }}', '{{ goal.current_amount }}', '{{ goal.target_date|date:'Y-m-d' }}', '{{ goal.description|escapejs }}')">Edit</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="addMoney('{{ goal.id }}', '{{ goal.name|escapejs }}')">Add Money</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteGoal('{{ goal.id }}', '{{ goal.name }}')">Delete</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteGoal('{{ goal.id }}', '{{ goal.name|escapejs }}')">Delete</a></li>
                         </ul>
                     </div>
                 </div>
