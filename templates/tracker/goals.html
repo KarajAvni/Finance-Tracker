@@ -14,7 +14,7 @@
 <!-- Goals Overview -->
 <div class="row mb-4">
     <div class="col-md-4">
-        <div class="card bg-info text-white">
+        <div class="card bg-info text-white dashboard-card">
             <div class="card-body">
                 <h6>Active Goals</h6>
                 <h4>{{ active_goals_count }}</h4>
@@ -22,7 +22,7 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card bg-success text-white">
+        <div class="card bg-success text-white dashboard-card">
             <div class="card-body">
                 <h6>Total Target</h6>
                 <h4>${{ total_target|floatformat:2 }}</h4>
@@ -30,7 +30,7 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card bg-primary text-white">
+        <div class="card bg-primary text-white dashboard-card">
             <div class="card-body">
                 <h6>Total Saved</h6>
                 <h4>${{ total_saved|floatformat:2 }}</h4>

@@ -12,7 +12,7 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card bg-danger text-white">
+        <div class="card bg-danger text-white dashboard-card">
             <div class="card-body">
                 <h5>Total Expenses</h5>
                 <h3>${{ total_expenses|floatformat:2 }}</h3>
@@ -20,7 +20,7 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card {% if balance >= 0 %}bg-info{% else %}bg-warning{% endif %} text-white">
+        <div class="card {% if balance >= 0 %}bg-info{% else %}bg-warning{% endif %} text-white dashboard-card">
             <div class="card-body">
                 <h5>Balance</h5>
                 <h3>${{ balance|floatformat:2 }}</h3>
