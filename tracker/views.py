@@ -7,8 +7,11 @@ from .models import Transaction, Category, SavingsGoal
 from .forms import TransactionForm, SavingsGoalForm
 from django.core.paginator import Paginator
 from django.utils import timezone
-import json
-
+import csv
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from decimal import Decimal, InvalidOperation
 
 # Create your views here.
 
@@ -192,36 +195,50 @@ def add_money_to_goal(request):
     if request.method == 'POST':
         try:
             goal_id = request.POST.get('goal_id')
-            amount = request.POST.get('amount')
+            amount_str = request.POST.get('amount')
             
             # Validate inputs
             if not goal_id:
                 messages.error(request, 'Goal ID is missing.')
                 return redirect('savings_goals')
                 
-            if not amount:
+            if not amount_str:
                 messages.error(request, 'Amount is required.')
                 return redirect('savings_goals')
             
-            amount = float(amount)
+            # Try to convert to Decimal first (better for money)
+            try:
+                amount = Decimal(str(amount_str))
+            except (InvalidOperation, ValueError):
+                messages.error(request, 'Please enter a valid amount.')
+                return redirect('savings_goals')
             
             if amount <= 0:
                 messages.error(request, 'Amount must be greater than 0.')
                 return redirect('savings_goals')
             
-            goal = get_object_or_404(SavingsGoal, id=goal_id, user=request.user)
+            # Get the goal
+            try:
+                goal = SavingsGoal.objects.get(id=goal_id, user=request.user)
+            except SavingsGoal.DoesNotExist:
+                messages.error(request, 'Goal not found.')
+                return redirect('savings_goals')
+            
+            # Update the goal
             goal.current_amount += amount
             goal.save()
             
             messages.success(request, f'Added ${amount:.2f} to "{goal.name}"!')
             
-        except ValueError:
-            messages.error(request, 'Please enter a valid amount.')
         except Exception as e:
-            messages.error(request, 'An error occurred while adding money to the goal.')
+            # Log the full error for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f'Error adding money to goal: {str(e)}', exc_info=True)
+            
+            messages.error(request, 'An error occurred while adding money to the goal. Please try again.')
     
     return redirect('savings_goals')
-
 @login_required
 def edit_goal(request, goal_id):
     """Edit an existing savings goal"""
@@ -313,3 +330,87 @@ def delete_goal(request, goal_id):
         messages.success(request, f'Goal "{goal_name}" deleted successfully!')
     
     return redirect('savings_goals')
+
+# Transactions Export
+def export_transactions_csv(request):
+    transactions = Transaction.objects.filter(user=request.user).select_related('category')
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="transactions.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Date', 'Description', 'Category', 'Type', 'Amount'])
+    
+    for t in transactions:
+        writer.writerow([
+            t.date.strftime('%Y-%m-%d'),
+            t.description,
+            t.category.name,
+            t.type,
+            f"${t.amount:.2f}"
+        ])
+    
+    return response
+
+def export_transactions_pdf(request):
+    transactions = Transaction.objects.filter(user=request.user).select_related('category')
+    
+    template = get_template('tracker/transactions_pdf.html')
+    html = template.render({'transactions': transactions, 'user': request.user})
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="transactions.pdf"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('Error generating PDF')
+    return response
+
+# Savings Goals Export
+def export_goals_csv(request):
+    goals = SavingsGoal.objects.filter(user=request.user)
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="savings_goals.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Name', 'Target Amount', 'Current Amount', 'Progress', 'Target Date', 'Status'])
+    
+    for goal in goals:
+        status = "Achieved" if goal.progress_percentage >= 100 else "In Progress"
+        writer.writerow([
+            goal.name,
+            f"${goal.target_amount:.2f}",
+            f"${goal.current_amount:.2f}",
+            f"{goal.progress_percentage:.1f}%",
+            goal.target_date.strftime('%Y-%m-%d'),
+            status
+        ])
+    
+    return response
+
+def export_goals_pdf(request):
+    goals = SavingsGoal.objects.filter(user=request.user)
+    
+    # Calculate totals in the view
+    total_target = sum(g.target_amount for g in goals)
+    total_saved = sum(g.current_amount for g in goals)
+    
+    context = {
+        'goals': goals,
+        'user': request.user,
+        'total_goals': len(goals),
+        'total_target': total_target,
+        'total_saved': total_saved,
+    }
+    
+    template = get_template('tracker/goals_pdf.html')
+    html = template.render(context)
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="savings_goals.pdf"'
+    
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        return HttpResponse('Error generating PDF')
+    return response

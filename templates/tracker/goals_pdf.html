@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Savings Goals Report - {{ user.username }}</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        h1 { color: #333; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .progress-container { width: 100px; height: 20px; background-color: #e0e0e0; border-radius: 4px; display: inline-block; }
+        .progress-fill { height: 100%; border-radius: 4px; }
+        .achieved { background-color: #4CAF50; }
+        .overdue { background-color: #f44336; }
+        .in-progress { background-color: #2196F3; }
+        .status { padding: 3px 8px; border-radius: 3px; color: white; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <h1>Savings Goals Report</h1>
+    <p>Generated on: {% now "Y-m-d" %}</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Goal</th>
+                <th>Target</th>
+                <th>Saved</th>
+                <th>Progress</th>
+                <th>Target Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for goal in goals %}
+            <tr>
+                <td>{{ goal.name }}</td>
+                <td>${{ goal.target_amount|floatformat:2 }}</td>
+                <td>${{ goal.current_amount|floatformat:2 }}</td>
+                <td>
+                    <div class="progress-container">
+                        <div class="progress-fill 
+                            {% if goal.progress_percentage >= 100 %}achieved
+                            {% elif goal.target_date < now %}overdue
+                            {% else %}in-progress{% endif %}" 
+                            style="width: {% widthratio goal.current_amount goal.target_amount 100 %}%">
+                        </div>
+                    </div>
+                    {{ goal.progress_percentage|floatformat:1 }}%
+                </td>
+                <td>{{ goal.target_date|date:"Y-m-d" }}</td>
+                <td>
+                    <span class="status 
+                        {% if goal.progress_percentage >= 100 %}achieved
+                        {% elif goal.target_date < now %}overdue
+                        {% else %}in-progress{% endif %}">
+                        {% if goal.progress_percentage >= 100 %}Achieved
+                        {% elif goal.target_date < now %}Overdue
+                        {% else %}In Progress{% endif %}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 30px;">
+        <h3>Summary</h3>
+        <p>Total Goals: {{ total_goals }}</p>
+        <p>Total Target: ${{ total_target|floatformat:2 }}</p>
+        <p>Total Saved: ${{ total_saved|floatformat:2 }}</p>
+    </div>
+</body>
+</html>

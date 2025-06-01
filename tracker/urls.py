@@ -14,4 +14,8 @@ urlpatterns = [
     path('get-goal-data/<int:goal_id>/', views.get_goal_data, name='get_goal_data'),
     path('delete-transaction/<int:transaction_id>/', views.delete_transaction, name='delete_transaction'),
     path('delete-goal/<int:goal_id>/', views.delete_goal, name='delete_goal'),
+    path('transactions/export/csv/', views.export_transactions_csv, name='export_transactions_csv'),
+    path('transactions/export/pdf/', views.export_transactions_pdf, name='export_transactions_pdf'),
+    path('goals/export/csv/', views.export_goals_csv, name='export_goals_csv'),
+    path('goals/export/pdf/', views.export_goals_pdf, name='export_goals_pdf'),
 ]

@@ -28,3 +28,4 @@ class SavingsGoalAdmin(admin.ModelAdmin):
     def progress_percentage(self, obj):
         return f"{obj.progress_percentage:.1f}%"
     progress_percentage.short_description = 'Progress'
+
