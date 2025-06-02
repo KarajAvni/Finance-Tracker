@@ -414,3 +414,69 @@ def export_goals_pdf(request):
     if pisa_status.err:
         return HttpResponse('Error generating PDF')
     return response
+
+@login_required
+def get_transaction_data(request, transaction_id):
+    """Get transaction data for editing (AJAX endpoint)"""
+    try:
+        transaction = get_object_or_404(Transaction, id=transaction_id, user=request.user)
+        data = {
+            'id': transaction.id,
+            'description': transaction.description,
+            'amount': str(transaction.amount),
+            'type': transaction.type,
+            'category_id': transaction.category.id,
+            'date': transaction.date.strftime('%Y-%m-%d'),
+        }
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': 'Transaction not found'}, status=404)
+
+@login_required
+def edit_transaction(request, transaction_id):
+    """Edit an existing transaction"""
+    if request.method == 'POST':
+        transaction = get_object_or_404(Transaction, id=transaction_id, user=request.user)
+        
+        try:
+            # Get form data
+            description = request.POST.get('description', '').strip()
+            amount = request.POST.get('amount')
+            transaction_type = request.POST.get('type')
+            category_id = request.POST.get('category')
+            date = request.POST.get('date')
+            
+            # Validate required fields
+            if not description:
+                messages.error(request, 'Description is required.')
+                return redirect('transaction_list')
+            
+            if not amount:
+                messages.error(request, 'Amount is required.')
+                return redirect('transaction_list')
+            
+            # Convert and validate amount
+            amount = float(amount)
+            if amount <= 0:
+                messages.error(request, 'Amount must be greater than 0.')
+                return redirect('transaction_list')
+            
+            # Get category
+            category = get_object_or_404(Category, id=category_id, user=request.user)
+            
+            # Update transaction
+            transaction.description = description
+            transaction.amount = amount
+            transaction.type = transaction_type
+            transaction.category = category
+            transaction.date = date
+            transaction.save()
+            
+            messages.success(request, 'Transaction updated successfully!')
+            
+        except ValueError:
+            messages.error(request, 'Please enter a valid amount.')
+        except Exception as e:
+            messages.error(request, 'An error occurred while updating the transaction.')
+    
+    return redirect('transaction_list')
