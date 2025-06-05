@@ -185,3 +185,22 @@ main.container {
         height: 250px;
     }
 }
+.mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Adjust main content to account for both header and bottom nav */
+main.container {
+    padding-top: 10px;
+    padding-bottom: 70px;
+}
+
+/* Ensure the mobile header doesn't show on desktop */
+@media (min-width: 992px) {
+    .mobile-header {
+        display: none;
+    }
+}
