@@ -55,16 +55,100 @@ def dashboard(request):
 @login_required
 def add_transaction(request):
     if request.method == 'POST':
-        form = TransactionForm(request.POST, user=request.user)
-        if form.is_valid():
-            transaction = form.save(commit=False)
-            transaction.user = request.user
-            transaction.save()
+        try:
+            # Get form data
+            description = request.POST.get('description', '').strip()
+            amount = request.POST.get('amount')
+            transaction_type = request.POST.get('type')
+            category_id = request.POST.get('category')
+            date = request.POST.get('date')
+            
+            # Validate required fields
+            if not description:
+                messages.error(request, 'Description is required.')
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'error': 'Description is required.'}, status=400)
+                return redirect('transaction_list')
+            
+            if not amount:
+                messages.error(request, 'Amount is required.')
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'error': 'Amount is required.'}, status=400)
+                return redirect('transaction_list')
+            
+            if not transaction_type:
+                messages.error(request, 'Transaction type is required.')
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'error': 'Transaction type is required.'}, status=400)
+                return redirect('transaction_list')
+            
+            if not category_id:
+                messages.error(request, 'Category is required.')
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'error': 'Category is required.'}, status=400)
+                return redirect('transaction_list')
+            
+            if not date:
+                messages.error(request, 'Date is required.')
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'error': 'Date is required.'}, status=400)
+                return redirect('transaction_list')
+            
+            # Convert and validate amount
+            amount = float(amount)
+            if amount <= 0:
+                messages.error(request, 'Amount must be greater than 0.')
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'error': 'Amount must be greater than 0.'}, status=400)
+                return redirect('transaction_list')
+            
+            # Get category
+            try:
+                category = Category.objects.get(id=category_id, user=request.user)
+            except Category.DoesNotExist:
+                messages.error(request, 'Invalid category selected.')
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'error': 'Invalid category selected.'}, status=400)
+                return redirect('transaction_list')
+            
+            # Create transaction
+            transaction = Transaction.objects.create(
+                user=request.user,
+                description=description,
+                amount=amount,
+                type=transaction_type,
+                category=category,
+                date=date
+            )
+            
             messages.success(request, 'Transaction added successfully!')
-            return redirect('dashboard')
+            
+            # For AJAX requests, return JSON response
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Transaction added successfully!',
+                    'transaction_id': transaction.id
+                })
+            
+            # For regular form submissions, redirect to transaction list
+            return redirect('transaction_list')
+            
+        except ValueError:
+            messages.error(request, 'Please enter a valid amount.')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'Please enter a valid amount.'}, status=400)
+            return redirect('transaction_list')
+        except Exception as e:
+            messages.error(request, 'An error occurred while adding the transaction.')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'An error occurred while adding the transaction.'}, status=500)
+            return redirect('transaction_list')
+    
     else:
+        # For GET requests, render the original add transaction page
         form = TransactionForm(user=request.user)
-    return render(request, 'tracker/add_transaction.html', {'form': form})
+        return render(request, 'tracker/add_transaction.html', {'form': form})
 
 @login_required
 def transaction_list(request):
