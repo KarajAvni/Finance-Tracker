@@ -152,3 +152,5 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = 'your@gmail.com'  # Replace with your email
 # EMAIL_HOST_PASSWORD = 'your-app-password'  # Google App Password (not regular password)
+
+PORT = int(os.environ.get('PORT', 8000))
