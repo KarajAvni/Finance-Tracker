@@ -28,6 +28,9 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
+# CSRF trusted origins for Render
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='https://localhost,https://127.0.0.1').split(',')
+
 
 # Application definition
 
@@ -152,5 +155,3 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = 'your@gmail.com'  # Replace with your email
 # EMAIL_HOST_PASSWORD = 'your-app-password'  # Google App Password (not regular password)
-
-PORT = int(os.environ.get('PORT', 8000))
