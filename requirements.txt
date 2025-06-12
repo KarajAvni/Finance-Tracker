@@ -7,3 +7,6 @@ gunicorn==21.2.0
 psycopg2-binary
 django-debug-toolbar
 gunicorn
+xhtml2pdf
+reportlab
+Pillow
