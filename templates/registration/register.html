@@ -8,18 +8,28 @@
                     <h2 class="h4 mb-0 text-center">Create Your Account</h2>
                 </div>
                 <div class="card-body p-4">
+                    <!-- Display form errors or messages -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
                     <form method="post" class="needs-validation registration-form" novalidate>
                         {% csrf_token %}
                         
                         <!-- Username Field -->
                         <div class="mb-3">
-                            <label for="id_username" class="form-label">Username</label>
-                            <input type="text" name="username" id="id_username" 
-                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
-                                   required>
+                            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                            {{ form.username }}
                             {% if form.username.errors %}
-                                <div class="invalid-feedback">
-                                    {{ form.username.errors.0 }}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.username.errors %}
+                                        {{ error }}
+                                    {% endfor %}
                                 </div>
                             {% else %}
                                 <div class="form-text">150 characters or fewer. Letters, digits and @/./+/-/_ only.</div>
@@ -28,26 +38,26 @@
                         
                         <!-- Email Field -->
                         <div class="mb-3">
-                            <label for="id_email" class="form-label">Email</label>
-                            <input type="email" name="email" id="id_email" 
-                                   class="form-control {% if form.email.errors %}is-invalid{% endif %}" 
-                                   required>
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                            {{ form.email }}
                             {% if form.email.errors %}
-                                <div class="invalid-feedback">
-                                    {{ form.email.errors.0 }}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
                                 </div>
                             {% endif %}
                         </div>
                         
                         <!-- Password Field -->
                         <div class="mb-3">
-                            <label for="id_password1" class="form-label">Password</label>
-                            <input type="password" name="password1" id="id_password1" 
-                                   class="form-control {% if form.password1.errors %}is-invalid{% endif %}" 
-                                   required>
+                            <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                            {{ form.password1 }}
                             {% if form.password1.errors %}
-                                <div class="invalid-feedback">
-                                    {{ form.password1.errors.0 }}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.password1.errors %}
+                                        {{ error }}
+                                    {% endfor %}
                                 </div>
                             {% else %}
                                 <div class="form-text">8+ characters with 1 uppercase and 1 digit.</div>
@@ -56,16 +66,25 @@
                         
                         <!-- Password Confirmation -->
                         <div class="mb-4">
-                            <label for="id_password2" class="form-label">Confirm Password</label>
-                            <input type="password" name="password2" id="id_password2" 
-                                   class="form-control {% if form.password2.errors %}is-invalid{% endif %}" 
-                                   required>
+                            <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+                            {{ form.password2 }}
                             {% if form.password2.errors %}
-                                <div class="invalid-feedback">
-                                    {{ form.password2.errors.0 }}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.password2.errors %}
+                                        {{ error }}
+                                    {% endfor %}
                                 </div>
                             {% endif %}
                         </div>
+                        
+                        <!-- Display non-field errors -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                         
                         <button type="submit" class="btn btn-primary w-100 py-2">Sign Up</button>
                     </form>
@@ -77,10 +96,33 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Add Bootstrap classes to Django form fields */
+.form-control {
+    margin-bottom: 0;
+}
+</style>
 {% endblock %}
 
 {% block scripts %}
 <script>
+// Add Bootstrap classes to Django form fields
+document.addEventListener('DOMContentLoaded', function() {
+    // Add form-control class to all form inputs
+    const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"]');
+    inputs.forEach(input => {
+        input.classList.add('form-control');
+        input.setAttribute('required', 'required');
+        
+        // Add is-invalid class if there are errors
+        const parent = input.closest('.mb-3, .mb-4');
+        if (parent && parent.querySelector('.invalid-feedback')) {
+            input.classList.add('is-invalid');
+        }
+    });
+});
+
 // Enable Bootstrap validation
 (function() {
     'use strict'

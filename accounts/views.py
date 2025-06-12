@@ -5,19 +5,24 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import CustomUserCreationForm
 
-# Create your views here.
-
 def register(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)  # Use the correct class name
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            # Optional: login the user directly
-            # from django.contrib.auth import login
-            # login(request, user)
-            return redirect('login')  # Redirect to login page after registration
+            try:
+                user = form.save()
+                messages.success(request, 'Registration successful! You can now log in.')
+                return redirect('login')
+            except Exception as e:
+                messages.error(request, f'Registration failed: {str(e)}')
+        else:
+            # Add form errors to messages for debugging
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
         form = CustomUserCreationForm()
+    
     return render(request, 'registration/register.html', {'form': form})
 
 @login_required
