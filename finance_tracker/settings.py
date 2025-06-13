@@ -44,8 +44,8 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap4',
     'accounts',
-    'tracker',
     'debug_toolbar',
+    'tracker.apps.TrackerConfig',
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
